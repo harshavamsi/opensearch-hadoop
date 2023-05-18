@@ -16,14 +16,6 @@ jobs:
         run: |
           echo "approvers=$(cat .github/CODEOWNERS | grep @ | tr -d '* ' | sed 's/@/,/g' | sed 's/,//1')" >> $GITHUB_OUTPUT
           echo "version=$(cat gradle.properties | grep "systemProp.version" | cut -d'=' -f2)" >> $GITHUB_OUTPUT
-      - uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: ${{ steps.get_data.outputs.approvers }}
-          minimum-approvals: 1
-          issue-title: 'Release opensearch-hadoop : ${{ steps.get_data.outputs.version }}'
-          issue-body: "Please approve or deny the release of opensearch-hadoop. **VERSION**: ${{ steps.get_data.outputs.version }} **TAG**: ${{ github.ref_name }}  **COMMIT**: ${{ github.sha }}"
-          exclude-workflow-initiator-as-approver: true
       - name: Set up JDK 8
         uses: actions/setup-java@v3
         with:
@@ -107,14 +99,15 @@ jobs:
 
       - name: create artifacts
         run: |
-          tar -C maven -cvf opensearch-hadoop.tar.gz org/opensearch/client/opensearch-hadoop
-          tar -C maven -cvf opensearch-hadoop-hive.tar.gz org/opensearch/client/opensearch-hadoop-hive
-          tar -C maven -cvf opensearch-hadoop-mr.tar.gz org/opensearch/client/opensearch-hadoop-mr
-          tar -C maven -cvf opensearch-spark-20_2.10.tar.gz org/opensearch/client/opensearch-spark-20_2.10
-          tar -C maven -cvf opensearch-spark-20_2.11.tar.gz org/opensearch/client/opensearch-spark-20_2.11
-          tar -C maven -cvf opensearch-spark-20_2.12.tar.gz org/opensearch/client/opensearch-spark-20_2.12
-          tar -C maven -cvf opensearch-spark-30_2.12.tar.gz org/opensearch/client/opensearch-spark-30_2.12
-          tar -C maven -cvf opensearch-spark-30_2.13.tar.gz org/opensearch/client/opensearch-spark-30_2.13
+          tar -cvf artifacts.tar.gz maven
+
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: ${{ steps.get_data.outputs.approvers }}
+          minimum-approvals: 1
+          issue-title: 'Release opensearch-hadoop : ${{ steps.get_data.outputs.version }}'
+          issue-body: "Please approve or deny the release of opensearch-hadoop. **VERSION**: ${{ steps.get_data.outputs.version }} **TAG**: ${{ github.ref_name }}  **COMMIT**: ${{ github.sha }}"
 
       - name: Draft a release
         uses: softprops/action-gh-release@v1
@@ -122,11 +115,4 @@ jobs:
           draft: true
           generate_release_notes: true
           files: |
-            opensearch-hadoop.tar.gz
-            opensearch-hadoop-hive.tar.gz
-            opensearch-hadoop-mr.tar.gz
-            opensearch-spark-20_2.10.tar.gz
-            opensearch-spark-20_2.11.tar.gz
-            opensearch-spark-20_2.12.tar.gz
-            opensearch-spark-30_2.12.tar.gz
-            opensearch-spark-30_2.13.tar.gz
+            artifacts.tar.gz
