@@ -76,7 +76,7 @@ jobs:
 
       - name: generate JARs
         run: |
-          ./gradlew clean -S -Dorg.gradle.warning.mode=summary distribution --no-configuration-cache --no-daemon --info
+          ./gradlew clean -S -Dbuild.snapshot=false -Dorg.gradle.warning.mode=summary distribution --no-configuration-cache --no-daemon --info
 
       - name: copy JARs and POMs
         run: |
